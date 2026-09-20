@@ -1,0 +1,26 @@
+# Force bash scripts + Python source to stay LF on macOS/Windows checkout
+*.py      text eol=lf
+*.ts      text eol=lf
+*.js      text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf linguist-detectable
+*.sh      text eol=lf
+
+# CSV dataset — never diff line-by-line, treat as data
+*.csv     -diff merge=binary
+
+# JSON sample submissions
+*.json    text eol=lf
+
+# Binary databases always binary
+*.db      binary
+*.db-*    binary
+*.sqlite  binary
+*.sqlite3 binary
+
+# Images / screenshots
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.webp    binary

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Lead Manager · Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.5/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header id="app-header"></header>
+  <main>
+    <div class="page-head">
+      <h1 class="page-title">
+        <svg class="svg-icon page-title-ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+        Pipeline Dashboard
+        <span class="backend-hint" id="backend-hint"></span>
+      </h1>
+      <p class="page-desc">Pipeline overview, source channel breakdown, and live status — toggle backend switcher above to compare Python vs Node.js results.</p>
+    </div>
+    <div id="stats"></div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h3 class="panel-title">Lead Status Distribution</h3>
+            <div class="panel-sub">7 normalized stages · Data from GET /dashboard by_status</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="chartStatus"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h3 class="panel-title">
+              <svg class="svg-icon panel-title-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px;color:var(--accent)"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="9" y1="13" x2="9.01" y2="13"/></svg>
+              Lead Source Channel <span class="ai-chip">Source Extract</span>
+            </h3>
+            <div class="panel-sub">
+              Regex-first extraction on 2049 Notes · <strong>use_llm=False</strong> (Dashboard safety) · via GET /dashboard by_channel
+              <div style="margin-top:6px"><span class="legend-dot" style="background:#3b82f6"></span> <code style="font-size:11px;background:var(--bg-3);padding:2px 6px;border-radius:4px">data.by_channel = extract_source(notes + original_source, use_llm=False)</code></div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="chartChannel"></canvas></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3 class="panel-title">Funnel Conversion Table</h3>
+          <div class="panel-sub">Conversion rate relative to total leads (2049)</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn" onclick="reloadPageData()">
+            <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data" id="funnelTable"></table>
+      </div>
+    </div>
+  </main>
+  <div class="backdrop" id="backdrop"></div>
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

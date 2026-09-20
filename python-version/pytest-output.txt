@@ -1,0 +1,68 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.4, pytest-8.4.1, pluggy-1.5.0 -- /opt/anaconda3/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/tatas/Downloads/candidate_package copy/python-version
+plugins: asyncio-1.1.0, xdist-3.8.0, time-machine-2.16.0, timeout-2.4.0, cov-6.2.1, mock-3.14.1, anyio-3.7.1, langsmith-0.4.8, Faker-37.4.2
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+timeout: 60.0s
+timeout method: signal
+timeout func_only: False
+collecting ... collected 45 items
+
+tests/test_cleaner.py::TestNormalizeLeadStatus::test_new_variants PASSED [  2%]
+tests/test_cleaner.py::TestNormalizeLeadStatus::test_closed_lost PASSED  [  4%]
+tests/test_cleaner.py::TestNormalizeLeadStatus::test_closed_won PASSED   [  6%]
+tests/test_cleaner.py::TestNormalizeLeadStatus::test_qualified PASSED    [  8%]
+tests/test_cleaner.py::TestNormalizeLeadStatus::test_other_statuses PASSED [ 11%]
+tests/test_cleaner.py::TestNormalizeLeadStatus::test_invalid_defaults_new PASSED [ 13%]
+tests/test_cleaner.py::TestNormalizePhoneDigits::test_plus_and_parens PASSED [ 15%]
+tests/test_cleaner.py::TestNormalizePhoneDigits::test_spaces_and_dashes PASSED [ 17%]
+tests/test_cleaner.py::TestNormalizePhoneDigits::test_other_chars PASSED [ 20%]
+tests/test_cleaner.py::TestNormalizeCompanyTokens::test_strip_ltd PASSED [ 22%]
+tests/test_cleaner.py::TestNormalizeCompanyTokens::test_strip_inc PASSED [ 24%]
+tests/test_cleaner.py::TestNormalizeCompanyTokens::test_strip_pte_ltd PASSED [ 26%]
+tests/test_cleaner.py::TestNormalizeCompanyTokens::test_strip_llc PASSED [ 28%]
+tests/test_cleaner.py::TestNormalizeCompanyTokens::test_strip_holdings_group PASSED [ 31%]
+tests/test_cleaner.py::TestParseMixedDate::test_iso_with_t PASSED        [ 33%]
+tests/test_cleaner.py::TestParseMixedDate::test_yyyy_mm_dd PASSED        [ 35%]
+tests/test_cleaner.py::TestParseMixedDate::test_m_d_yyyy PASSED          [ 37%]
+tests/test_cleaner.py::TestParseFullName::test_two_parts PASSED          [ 40%]
+tests/test_cleaner.py::TestParseFullName::test_multi_part_last PASSED    [ 42%]
+tests/test_cleaner.py::TestParseFullName::test_single_token PASSED       [ 44%]
+tests/test_cleaner.py::TestLoadAndCleanCSV::test_row_count PASSED        [ 46%]
+tests/test_cleaner.py::TestLoadAndCleanCSV::test_rows_have_required_keys PASSED [ 48%]
+tests/test_cleaner.py::TestLoadAndCleanCSV::test_status_normalized PASSED [ 51%]
+tests/test_dedup.py::TestDedup::test_blocking_pairs_count PASSED         [ 53%]
+tests/test_dedup.py::TestDedup::test_known_dup_high_confidence PASSED    [ 55%]
+tests/test_dedup.py::TestDedup::test_dedup_runtime PASSED                [ 57%]
+tests/test_ingest.py::TestIngestCreate::test_ingest_new_unique PASSED    [ 60%]
+tests/test_ingest.py::TestIngestUpdate::test_ingest_existing_email PASSED [ 62%]
+tests/test_leads_api.py::TestLeadsList::test_get_leads_ok PASSED         [ 64%]
+tests/test_leads_api.py::TestLeadsList::test_filter_status_closed_won PASSED [ 66%]
+tests/test_leads_api.py::TestLeadsList::test_free_text_search_singh PASSED [ 68%]
+tests/test_leads_api.py::TestLeadDetail::test_get_lead_1 PASSED          [ 71%]
+tests/test_leads_api.py::TestLeadDetail::test_get_lead_404 PASSED        [ 73%]
+tests/test_leads_api.py::TestLeadPatch::test_patch_notes PASSED          [ 75%]
+tests/test_leads_api.py::TestLeadExport::test_export_content_type PASSED [ 77%]
+tests/test_source_extract.py::TestSourceExtract::test_singapore_fintech_event PASSED [ 80%]
+tests/test_source_extract.py::TestSourceExtract::test_referral_michael_zhang PASSED [ 82%]
+tests/test_source_extract.py::TestSourceExtract::test_linkedin_dm PASSED [ 84%]
+tests/test_source_extract.py::TestSourceExtract::test_organic_google PASSED [ 86%]
+tests/test_source_extract.py::TestSourceExtract::test_manual_added PASSED [ 88%]
+tests/test_source_extract.py::TestSourceExtract::test_website_form_pricing PASSED [ 91%]
+tests/test_source_extract.py::TestSourceExtract::test_other_gibberish PASSED [ 93%]
+tests/test_source_extract.py::TestSourceExtract::test_qr_saastr_event PASSED [ 95%]
+tests/test_source_extract.py::TestSourceExtract::test_linkedin_comment PASSED [ 97%]
+tests/test_source_extract.py::TestSourceExtract::test_booked_demo_google_ad PASSED [100%]
+
+=============================== warnings summary ===============================
+../../../../../opt/anaconda3/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /opt/anaconda3/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+app/schemas.py:59
+  /Users/tatas/Downloads/candidate_package copy/python-version/app/schemas.py:59: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class LeadResponse(LeadBase):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 45 passed, 2 warnings in 1.11s ========================

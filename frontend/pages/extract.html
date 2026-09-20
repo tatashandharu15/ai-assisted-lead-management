@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Source Extractor · AI Lead Manager</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <header id="app-header"></header>
+  <main>
+    <div class="page-head">
+      <h1 class="page-title">🧠 Source Channel Extraction
+        <span class="backend-hint" id="backend-hint"></span>
+      </h1>
+      <p class="page-desc">8-priority regex rules + deterministic Mock LLM fallback. Same input → identical output Python & Node.js (100% parity).</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h3 class="panel-title">Try it — Free text</h3>
+          <div class="panel-sub">Paste any Notes text; endpoint POST /leads/extract-source</div>
+        </div>
+        <div class="form-row">
+          <label>Notes / Activity text</label>
+          <textarea id="textInput" placeholder="Example: Referred by Sarah Chen at SaaStr conference booth 42 — scanned QR, interested in enterprise annual pricing"></textarea>
+        </div>
+        <div class="form-row" style="display:flex;gap:10px;align-items:center">
+          <label style="display:flex;align-items:center;gap:6px;margin:0"><input type="checkbox" id="useLlm" checked style="accent-color:var(--accent);width:16px;height:16px" /> Use Mock LLM (regex-other fallback heuristic)</label>
+        </div>
+        <button class="btn primary" id="btn" onclick="doExtract()">🧠 Extract Source</button>
+        <div id="singleRes" style="margin-top:16px"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3 class="panel-title">Quick Presets</h3>
+          <div class="panel-sub">Click any card → paste to textarea</div>
+        </div>
+        <div style="display:grid;gap:8px" id="presetList"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h3 class="panel-title">Parity Test · Python vs Node.js (10 cases)</h3>
+        <div class="panel-sub">Compare both backends side-by-side — same 10 inputs = should match 10/10 channels</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn success" onclick="runParityTest()">▶ Run Cross-Backend Parity</button>
+          <button class="btn" onclick="document.getElementById('parityResults').innerHTML=''">Clear</button>
+        </div>
+      </div>
+      <div id="parityResults">
+        <div class="empty"><div class="ico">🧪</div><div class="t">Parity test not run yet</div><div class="s">Click "Run Cross-Backend Parity" above. Will hit current backend → then switch to other backend automatically → show 10×2 comparison.</div></div>
+      </div>
+    </div>
+  </main>
+  <script src="../js/api.js"></script>
+  <script>
+    function presetsList() { return [
+      { name: 'EVENT booth', color: '#ef4444', sample: 'Met Sarah at Singapore FinTech Festival 2026 booth #412, scanned QR badge' },
+      { name: 'REFERRAL warm', color: '#f59e0b', sample: 'Referred by Michael Zhang (CEO FooBar) — warm intro, 100-seat enterprise need' },
+      { name: 'LINKEDIN DM', color: '#8b5cf6', sample: 'LinkedIn DM inbound — commenting on post: "Lead scoring trends Q3"' },
+      { name: 'ORGANIC google', color: '#10b981', sample: 'Google organic search query "best SaaS lead dedup tool" → landing' },
+      { name: 'MANUAL cold call', color: '#ec4899', sample: 'Manual added by SDR Chen Wei — inbound call, APAC region' },
+      { name: 'WEBSITE form', color: '#3b82f6', sample: 'Submitted website form on /pricing → booked demo slot 2026-09-22 10:00 SGT' },
+      { name: 'GOOGLE AD → Website', color: '#0ea5e9', sample: 'Booked demo via google ad click landing page (paid search campaign)' },
+      { name: 'OTHER unknown', color: '#64748b', sample: 'Team offsite Bangkok May 2026 — casual chat at lobby' },
+      { name: 'LINKEDIN InMail reply', color: '#8b5cf6', sample: 'LinkedIn Sales Navigator InMail response — replied yes to 15 min intro' },
+      { name: 'SaaStr → Event', color: '#ef4444', sample: 'SaaStr Annual 2026 San Jose · Booth 42 · QR code scan + business card' },
+    ]; }
+    const presets = presetsList();
+
+    function initHint() {
+      const b = getCurrentBackend();
+      document.getElementById('backend-hint').innerHTML = `Backend: <span class="active-col mono" style="color:${b.color}">${b.label} :${b.port}</span>`;
+    }
+    initHint();
+    onBackendSwitch(initHint);
+
+    function loadPreset(i) { document.getElementById('textInput').value = presets[i].sample; doExtract(); }
+
+    async function doExtract() {
+      const t = document.getElementById('textInput').value.trim();
+      if (!t) { showToast('Paste / type text first', '#f59e0b'); return; }
+      const btn = document.getElementById('btn');
+      btn.disabled = true; btn.innerHTML = '<span class="sp"></span>Extracting...';
+      try {
+        const r = await api('/leads/extract-source', { method: 'POST', body: { text: t, useLlm: document.getElementById('useLlm').checked } });
+        document.getElementById('singleRes').innerHTML = `
+          <div style="padding:14px 16px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius-sm);display:grid;grid-template-columns:auto 1fr;gap:14px 20px;align-items:center">
+            <div style="grid-column:1">Channel</div><div>${channelBadge(r.channel)}</div>
+            <div style="grid-column:1;color:var(--text-dim);font-size:12px;font-weight:500">Detail</div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--bg);padding:8px 12px;border-radius:6px;border:1px solid var(--border)">${escapeHtml(r.detail || '')}</div>
+            <div style="grid-column:1;color:var(--text-dim);font-size:12px;font-weight:500">Backend</div><div class="mono" style="color:${getCurrentBackend().color}">${getCurrentBackend().label} :${getCurrentBackend().port}</div>
+          </div>`;
+        showToast(`→ ${r.channel}${r.detail ? ' · ' + r.detail : ''}`, CHANNEL_COLORS[CHANNEL_ORDER.indexOf(r.channel)] || '#6366f1');
+      } catch (e) { showToast(e.message, '#ef4444'); }
+      finally { btn.disabled = false; btn.innerHTML = '🧠 Extract Source'; }
+    }
+
+    function testCases() {
+      return [
+        ['Event (FinTech booth)', 'Met Sarah at Singapore FinTech Festival 2026 booth #412, scanned QR badge', 'Event'],
+        ['Referral (Referred by X)', 'Referred by Michael Zhang — warm intro from FooBar CEO', 'Referral'],
+        ['LinkedIn DM comment', 'LinkedIn DM inbound — commenting on post: Lead scoring trends Q3 2026', 'LinkedIn'],
+        ['Organic google search', 'Google organic search query "best SaaS lead dedup tool" SEO landing', 'Organic Search'],
+        ['Manual inbound call', 'Manual added by SDR Chen Wei — inbound call, APAC region SGP', 'Manual/Sales'],
+        ['Website pricing form', 'Submitted form on /pricing-book-demo page via website nav', 'Website'],
+        ['Google Ad → Website (NOT Organic)', 'Booked demo via google ad click landing page paid search CAMPAIGN ID=42', 'Website'],
+        ['Gibberish → Other', 'Team offsite Bangkok May 2026 lobby chat drinks night', 'Other'],
+        ['LinkedIn InMail variant', 'LinkedIn Sales Navigator InMail — replied yes to 15 min intro call', 'LinkedIn'],
+        ['SaaStr → Event variant', 'SaaStr Annual 2026 San Jose Booth 42 QR scan business card', 'Event'],
+      ];
+    }
+
+    let _parityRunning = false;
+    async function runParityTest() {
+      if (_parityRunning) { showToast('Parity test already running… wait or switch backend to cancel', '#f59e0b'); return; }
+      _parityRunning = true;
+      window._parityAbortCtrl = new AbortController();
+      const userSignal = window._parityAbortCtrl.signal;
+      const cases = testCases();
+      const original = getCurrentBackend().id;
+      const others = Object.keys(BACKENDS).filter(k => k !== original);
+      document.getElementById('parityResults').innerHTML = `<div class="empty"><div class="ico">⏳</div><div class="t">Testing both backends...</div><div class="s">Running ${cases.length} cases × ${Object.keys(BACKENDS).length} backends = ${cases.length * Object.keys(BACKENDS).length} API calls</div></div>`;
+      const results = [];
+      try {
+        for (const bid of [original, ...others]) {
+          if (userSignal.aborted) break;
+          const b = BACKENDS[bid];
+          const url = b.baseUrl;
+          const rows = [];
+          for (let i = 0; i < cases.length; i++) {
+            if (userSignal.aborted) break;
+            const [name, input, expected] = cases[i];
+            try {
+              const ctrl = new AbortController();
+              const to = setTimeout(() => ctrl.abort(), 5000);
+              const onUserAbort = () => ctrl.abort();
+              userSignal.addEventListener('abort', onUserAbort, { once: true });
+              const r = await fetch(url + '/leads/extract-source', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify(b.caseStyle === 'snake' ? { text: input, use_llm: true } : { text: input, useLlm: true }),
+                signal: ctrl.signal
+              });
+              clearTimeout(to);
+              userSignal.removeEventListener('abort', onUserAbort);
+              const data = await r.json().catch(() => null);
+              rows.push({ case: name, input, expected, got: data?.channel || 'ERR', detail: data?.detail || '', ok: data?.channel === expected, backend: bid });
+            } catch (e) {
+              const msg = e.name === 'AbortError' ? 'CANCELLED' : ('ERR: ' + e.message);
+              rows.push({ case: name, input, expected, got: msg, detail: '', ok: false, backend: bid });
+            }
+          }
+          results.push({ b, rows });
+        }
+      } finally {
+        _parityRunning = false;
+        if (window._parityAbortCtrl === window._parityAbortCtrl) window._parityAbortCtrl = null;
+      }
+      setCurrentBackend(original);
+      const passByBackend = results.map(({ b, rows }) => {
+        const ok = rows.filter(r => r.ok).length;
+        return `<strong style="color:${b.color}">${b.label}</strong>: ${ok}/${rows.length} (${(ok/rows.length*100).toFixed(0)}%)`;
+      }).join(' &nbsp;·&nbsp; ');
+      const matchAll = results[0].rows.filter((r, i) => results.every(res => res.rows[i].got === r.got)).length;
+      const headers = ['#', 'Test Case', 'Expected'];
+      results.forEach(res => headers.push(`${res.b.label} :${res.b.port}`));
+      headers.push('Match All?');
+      const tbodyRows = results[0].rows.map((r0, i) => {
+        const cells = results.map(res => {
+          const rr = res.rows[i];
+          return `<td>${rr.ok ? '✅' : '❌'} ${channelBadge(rr.got)}<div style="color:var(--text-muted);font-size:11px;margin-top:2px">${escapeHtml(truncate(rr.detail, 50))}</div></td>`;
+        }).join('');
+        const same = results.every(res => res.rows[i].got === r0.got);
+        return `<tr>
+          <td class="mono">${i + 1}</td>
+          <td><strong>${escapeHtml(r0.case)}</strong><div style="color:var(--text-muted);font-size:11px;margin-top:2px">${escapeHtml(truncate(r0.input, 80))}</div></td>
+          <td>${channelBadge(r0.expected)}</td>
+          ${cells}
+          <td><span class="pass-fail ${same ? 'ok' : 'no'}">${same ? '✓ MATCH' : '✗ DIFF'}</span></td>
+        </tr>`;
+      }).join('');
+      document.getElementById('parityResults').innerHTML = `
+        <div style="padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:14px;font-size:13px">
+          <strong>Summary:</strong> ${passByBackend} · Cross-backend parity: <strong>${matchAll}/${results[0].rows.length}</strong> (${(matchAll/results[0].rows.length*100).toFixed(0)}% identical outputs)
+        </div>
+        <div class="table-wrap"><table class="data"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${tbodyRows}</tbody></table></div>
+      `;
+      showToast(`Parity complete: ${matchAll}/${results[0].rows.length} match`, matchAll === results[0].rows.length ? '#10b981' : '#f59e0b');
+    }
+
+    renderHeader('extract');
+    // Render presets list at startup
+    document.getElementById('presetList').innerHTML = presetsList().map((p, i) => `
+      <button class="btn" style="text-align:left;display:block;width:100%" onclick="loadPreset(${i})">
+        <strong style="color:${p.color}">${escapeHtml(p.name)}</strong><br>
+        <span style="color:var(--text-dim);font-size:12px">${escapeHtml(p.sample)}</span>
+      </button>
+    `).join('');
+    window.reloadPageData = initHint;
+  </script>
+</body>
+</html>

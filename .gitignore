@@ -1,0 +1,104 @@
+# ==== DEPENDENCY CACHES & ENVIRONMENTS (NEVER commit these) ====
+
+# Python virtual environments (Python FastAPI stack)
+python-version/.venv/
+python-version/venv/
+python-version/.env       # Contains OPENAI_API_KEY — KEEP PRIVATE
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# Node.js dependencies (Node Fastify stack)
+node-version/node_modules/
+node-version/.env         # Contains OPENAI_API_KEY — KEEP PRIVATE
+node-version/dist/
+node-version/build/
+node-version/.npm
+node-version/.npmrc
+node-version/.node_repl_history
+node-version/package-lock.json.bak
+node-version/.yarn/cache
+node-version/.pnpm-store
+node-version/.tsbuildinfo
+node-version/.vitest/
+node-version/coverage/
+node-version/.vite/
+
+# ==== SENSITIVE SECRETS & CREDENTIALS (ABOLUTELY NO COMMIT) ====
+**/.env
+**/.env.local
+**/.env.production
+**/.env.development
+**/.env.*.local
+.env
+.env.*
+
+# ==== DATABASE FILES (SQLite binary + WAL + journal) ====
+# These are ephemeral — recreate via seed_db.py / npm run seed
+python-version/leads.db
+python-version/leads.db-shm
+python-version/leads.db-wal
+python-version/leads.sqlite3
+node-version/leads.db
+node-version/leads.db-shm
+node-version/leads.db-wal
+node-version/leads.sqlite3
+**/*.sqlite
+**/*.sqlite3
+**/*.db-journal
+
+# ==== OPERATIONAL / SYSTEM CRUFT ====
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.swp
+*.swo
+*~
+
+# IDE / EDITOR LOCAL CONFIGS
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.iml
+.project
+.classpath
+.c9/
+.settings/
+
+# LOG FILES (seed, dev, FE server stdout/stderr redirects)
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+nohup.out
+/tmp/*.log
+
+# FRONTEND — local-only cache dirs
+frontend/.cache/
+frontend/dist/
+
+# PYTHON ADDITIONAL ARTIFACTS
+.mypy_cache/
+.ruff_cache/
+coverage.xml
+htmlcov/
+.coverage
+.coverage.*
+.tox/
+.nox/
+*.manifest
+*.spec
+
+# OS X QUARANTINE
+._*
+
+# AUDIT RUN CRUFT — regenerated on every script invocation
+_audit_compliance_run_*.json
+_audit_tmp_*

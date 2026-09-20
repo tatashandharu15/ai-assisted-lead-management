@@ -1,0 +1,4 @@
+Rows loaded: 2049
+Rows inserted: 2049
+Status counts: {'closed_lost': 316, 'closed_won': 276, 'connected': 293, 'contacted': 282, 'new': 270, 'opportunity': 291, 'qualified': 321}
+Owner counts: {'Diego Alvarez': 183, 'Elena Popescu': 252, 'Fatima Rahman': 198, 'Grace Osei': 221, 'Hana Kobayashi': 225, 'Marcus Wong': 200, 'Noah Bennett': 198, 'Priya Nair': 210, 'Rohan Mehta': 175, 'Wei Chen': 187}

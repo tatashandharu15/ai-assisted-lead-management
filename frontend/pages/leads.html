@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leads Browser · AI Lead Manager</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <header id="app-header"></header>
+  <main>
+    <div class="page-head">
+      <h1 class="page-title">👥 Leads Browser
+        <span class="backend-hint" id="backend-hint"></span>
+      </h1>
+      <p class="page-desc">Browse, search, filter, update and export leads. Click any row for full detail.</p>
+    </div>
+    <div class="panel">
+      <div class="filter-bar">
+        <input class="input" id="q" type="search" placeholder="🔎 Search name / company / email..." style="flex:1;min-width:240px" />
+        <select class="select" id="status">
+          <option value="">All statuses</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="connected">Connected</option>
+          <option value="qualified">Qualified</option>
+          <option value="opportunity">Opportunity</option>
+          <option value="closed_won">Closed Won</option>
+          <option value="closed_lost">Closed Lost</option>
+        </select>
+        <select class="select" id="owner" style="min-width:180px"><option value="">All owners</option></select>
+        <select class="select" id="country" style="min-width:160px"><option value="">All countries</option></select>
+        <select class="select" id="limit">
+          <option value="50">Limit 50</option>
+          <option value="100" selected>Limit 100</option>
+          <option value="250">Limit 250</option>
+          <option value="500">Limit 500</option>
+          <option value="2500">All (max 2500)</option>
+        </select>
+        <button class="btn primary" onclick="applyFilters()">Apply Filter</button>
+        <button class="btn" onclick="resetFilters()">↺ Reset</button>
+        <button class="btn success" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+      <div id="results"></div>
+    </div>
+  </main>
+  <div class="backdrop" id="backdrop" onclick="closeDrawer();closeModal()"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-head">
+      <h3 class="drawer-title" id="drawerTitle">Lead #—</h3>
+      <button class="close-x" onclick="closeDrawer()">×</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-foot">
+      <button class="btn" onclick="closeDrawer()">Close</button>
+      <button class="btn warn" onclick="openPatchModal()">✏️ Update Status/Owner/Notes</button>
+    </div>
+  </aside>
+  <div class="modal" id="patchModal">
+    <div class="modal-head">
+      <h3 class="drawer-title">Update Lead</h3>
+      <button class="close-x" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Lead Status</label>
+          <select class="select" id="pStatus">
+            <option value="">(unchanged)</option>
+            <option value="new">New</option><option value="contacted">Contacted</option><option value="connected">Connected</option>
+            <option value="qualified">Qualified</option><option value="opportunity">Opportunity</option>
+            <option value="closed_won">Closed Won</option><option value="closed_lost">Closed Lost</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Owner Name</label>
+          <input class="input" id="pOwner" placeholder="e.g. Marcus Chen (or blank = unchanged)" />
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Notes (append or replace)</label>
+        <textarea id="pNotes" placeholder="Optional: new notes to set / replace..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" id="patchBtn" onclick="submitPatch()">Save Changes</button>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script>
+    let currentLeads = [];
+    let currentPage = 1;
+    const pageSize = 20;
+    let selectedId = null;
+
+    function initHint() {
+      const b = getCurrentBackend();
+      document.getElementById('backend-hint').innerHTML =
+        `Backend: <span class="active-col mono" style="color:${b.color}">${b.label} :${b.port}</span>`;
+    }
+
+    function applyFilters() { currentPage = 1; loadLeads(); }
+    function resetFilters() {
+      document.getElementById('q').value = '';
+      document.getElementById('status').value = '';
+      document.getElementById('owner').value = '';
+      document.getElementById('country').value = '';
+      document.getElementById('limit').value = '100';
+      currentPage = 1; loadLeads();
+    }
+
+    async function loadLeads() {
+      initHint();
+      const params = new URLSearchParams();
+      ['status','owner','country','q','limit'].forEach(k => {
+        const v = document.getElementById(k).value;
+        if (v) params.set(k, v);
+      });
+      const qs = params.toString() ? '?' + params.toString() : '';
+      document.getElementById('results').innerHTML = `<div class="empty"><div class="ico">⏳</div><div class="t">Fetching leads...</div><div class="s">${getCurrentBackend().label} ${getCurrentBackend().baseUrl}/leads${qs}</div></div>`;
+      try {
+        const data = await api('/leads' + qs);
+        currentLeads = Array.isArray(data) ? data : [];
+        if (!currentLeads.length) {
+          document.getElementById('results').innerHTML = `<div class="empty"><div class="ico">🤷</div><div class="t">No leads match filters</div><div class="s">Try clearing filters or choose different values.</div></div>`;
+          return;
+        }
+        renderTable();
+      } catch (err) {
+        document.getElementById('results').innerHTML = `<div class="empty"><div class="ico">⛔</div><div class="t">Request failed</div><div class="s">${escapeHtml(err.message)}</div></div>`;
+      }
+    }
+
+    function renderTable() {
+      const start = (currentPage - 1) * pageSize;
+      const page = currentLeads.slice(start, start + pageSize);
+      const cols = ['ID', 'Full Name', 'Email', 'Company', 'Country', 'Owner', 'Status', 'Create Date', 'Source'];
+      const html = `
+        <div style="margin-bottom:10px;color:var(--text-dim);font-size:12.5px">Showing <strong>${start + 1}–${Math.min(start + pageSize, currentLeads.length)}</strong> of <strong>${currentLeads.length}</strong> leads (max ${document.getElementById('limit').value} returned by API)</div>
+        <div class="table-wrap"><table class="data"><thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>
+        ${page.map(L => {
+          const rowId = String(L.record_id ?? L.id ?? L.recordId);
+          const safeAttrId = escapeAttr(rowId);
+          const src = '';
+          return `<tr data-lead-id="${safeAttrId}" class="${(selectedId === rowId) ? 'selected' : ''}">
+            <td class="mono">#${escapeHtml(rowId)}</td>
+            <td><strong>${escapeHtml(L.full_name ?? L.fullName ?? `${L.first_name ?? L.firstName ?? ''} ${L.last_name ?? L.lastName ?? ''}`)}</strong></td>
+            <td class="mono" style="color:var(--text-dim)">${escapeHtml(L.email)}</td>
+            <td>${escapeHtml(L.company_name ?? L.companyName ?? L.company ?? '—')}</td>
+            <td>${escapeHtml(L.country ?? '—')}</td>
+            <td>${escapeHtml(L.owner ?? 'Unassigned')}</td>
+            <td>${statusBadge(L.lead_status ?? L.leadStatus ?? L.status)}</td>
+            <td>${formatDate(L.create_date ?? L.createDate)}</td>
+            <td id="src-${safeAttrId}">${L.notes ? channelBadge((window._srcCache && window._srcCache[rowId]) || guessChannel(L.notes)) : '—'}</td>
+          </tr>`;
+        }).join('')}
+        </tbody></table></div>
+        <div class="pagination">
+          <div class="info">Page ${currentPage} of ${Math.max(1, Math.ceil(currentLeads.length / pageSize))}</div>
+          <div class="pg">
+            <button class="btn" ${currentPage <= 1 ? 'disabled style="opacity:.4;cursor:not-allowed"' : ''} onclick="goPage(${currentPage - 1})">← Prev</button>
+            <button class="btn" ${start + pageSize >= currentLeads.length ? 'disabled style="opacity:.4;cursor:not-allowed"' : ''} onclick="goPage(${currentPage + 1})">Next →</button>
+          </div>
+        </div>`;
+      document.getElementById('results').innerHTML = html;
+    }
+
+    function guessChannel(notes) {
+      const s = (notes || '').toLowerCase();
+      if (/referred by|referral|warm intro/.test(s)) return 'Referral';
+      if (/linkedin|inmail|dm\s|inbound.*comment/.test(s)) return 'LinkedIn';
+      if (/booth|qr\s|saastr|conference|expo|festival|trade\s*show|event/.test(s)) return 'Event';
+      if (/google.*organic|organic search|seo|search query/.test(s) && !/google ad|paid|ppc/.test(s)) return 'Organic Search';
+      if (/manual added|cold (email|outreach|call)|inbound call|sales team|sdr|bdr/.test(s)) return 'Manual/Sales';
+      if (/form|demo|booked|pricing|website|landing page|google ad|ad click|blog/.test(s)) return 'Website';
+      return 'Other';
+    }
+
+    function goPage(n) { currentPage = n; renderTable(); }
+
+    async function openDetail(id) {
+      selectedId = id;
+      renderTable();
+      try {
+        const L = await api(`/leads/${id}`);
+        const safeId = escapeHtml(String(L.record_id ?? L.id ?? id));
+        document.getElementById('drawerTitle').innerHTML = `Lead #${safeId} · ${statusBadge(L.lead_status ?? L.leadStatus ?? L.status)}`;
+        const src = await api(`/leads/${id}/extracted-source`).catch(() => null);
+        const fullName = L.full_name ?? L.fullName ?? `${L.first_name ?? L.firstName ?? ''} ${L.last_name ?? L.lastName ?? ''}`;
+        document.getElementById('drawerBody').innerHTML = `
+          <div class="form-row" style="margin-bottom:12px">
+            <h3 style="margin:0 0 4px">${escapeHtml(fullName)}</h3>
+            <div style="color:var(--text-dim);font-size:12.5px">${escapeHtml(L.job_title ?? L.jobTitle ?? '')}</div>
+          </div>
+          <div class="info-grid">
+            <div class="k">Email</div><div class="v mono">${escapeHtml(L.email || '—')}</div>
+            <div class="k">Phone</div><div class="v mono">${escapeHtml(L.phone ?? L.phoneNumber ?? '—')} ${L.phone_digits ? `<span style="color:var(--text-muted)"> (digits: ${escapeHtml(L.phone_digits)})</span>` : ''}</div>
+            <div class="k">Company</div><div class="v">${escapeHtml(L.company_name ?? L.companyName ?? L.company ?? '—')}</div>
+            <div class="k">Country</div><div class="v">${escapeHtml(L.country ?? '—')}</div>
+            <div class="k">Owner</div><div class="v">${escapeHtml(L.owner ?? 'Unassigned')}</div>
+            <div class="k">Status</div><div class="v">${statusBadge(L.lead_status ?? L.leadStatus ?? L.status)}</div>
+            <div class="k">Source (extracted)</div><div class="v">${src ? channelBadge(src.channel) + ` <span style="color:var(--text-dim)">→ ${escapeHtml(src.detail)}</span>` : '<span style="color:var(--text-muted)">unavailable</span>'}</div>
+            <div class="k">Created</div><div class="v">${formatDate(L.create_date ?? L.createDate)}</div>
+            <div class="k">Last updated</div><div class="v">${formatDate(L.updated_at ?? L.updatedAt)}</div>
+            <div class="k">Original Source</div><div class="v">${escapeHtml(L.original_source ?? L.originalSource ?? '—')}</div>
+            <div class="k">Lifecycle Stage</div><div class="v">${escapeHtml(L.lifecycle_stage ?? L.lifecycleStage ?? '—')}</div>
+          </div>
+          <div style="margin-top:18px"><label style="display:block;margin-bottom:6px;font-size:12px;color:var(--text-dim);font-weight:500">Notes / Activities</label>
+            <div class="notes-box">${escapeHtml(L.notes ?? '(no notes)')}</div>
+          </div>`;
+        document.getElementById('backdrop').classList.add('open');
+        document.getElementById('drawer').classList.add('open');
+      } catch (err) { showToast(err.message, '#ef4444'); }
+    }
+    function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('backdrop').classList.remove('open'); selectedId = null; renderTable(); }
+
+    function openPatchModal() { document.getElementById('patchModal').classList.add('open'); document.getElementById('backdrop').classList.add('open'); document.getElementById('pOwner').value = ''; document.getElementById('pStatus').value = ''; document.getElementById('pNotes').value = ''; }
+    function closeModal() { document.getElementById('patchModal').classList.remove('open'); if (!document.getElementById('drawer').classList.contains('open')) document.getElementById('backdrop').classList.remove('open'); }
+
+    async function submitPatch() {
+      if (!selectedId) return;
+      const body = {};
+      const s = document.getElementById('pStatus').value; if (s) body.status = s;
+      const o = document.getElementById('pOwner').value.trim(); if (o) body.owner = o;
+      const n = document.getElementById('pNotes').value; if (n) body.notes = n;
+      if (!Object.keys(body).length) { showToast('No changes to save', '#f59e0b'); return; }
+      const btn = document.getElementById('patchBtn');
+      btn.disabled = true; btn.innerHTML = '<span class="sp"></span>Saving...';
+      try {
+        await api(`/leads/${selectedId}`, { method: 'PATCH', body });
+        showToast(`Lead #${selectedId} updated ✓`, '#10b981');
+        closeModal(); closeDrawer(); loadLeads();
+      } catch (err) { showToast(err.message, '#ef4444'); }
+      finally { btn.disabled = false; btn.innerHTML = 'Save Changes'; }
+    }
+
+    async function exportCSV() {
+      const params = new URLSearchParams();
+      ['status','owner','country','q'].forEach(k => { const v = document.getElementById(k).value; if (v) params.set(k, v); });
+      const url = getCurrentBackend().baseUrl + '/leads/export' + (params.toString() ? '?' + params.toString() : '');
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        const fn = res.headers.get('Content-Disposition')?.match(/filename="?([^";]+)"?/)?.[1] || 'leads_export.csv';
+        a.download = fn; a.click();
+        showToast(`Downloaded ${fn}`, '#10b981');
+      } catch (err) { showToast('Export failed: ' + err.message, '#ef4444'); }
+    }
+
+    async function loadSelectOptions() {
+      try {
+        const leads = await api('/leads?limit=2500');
+        const owners = [...new Set(leads.map(l => l.owner).filter(Boolean))].sort();
+        const countries = [...new Set(leads.map(l => l.country).filter(Boolean))].sort();
+        document.getElementById('owner').innerHTML += owners.map(o => `<option>${escapeHtml(o)}</option>`).join('');
+        document.getElementById('country').innerHTML += countries.map(c => `<option>${escapeHtml(c)}</option>`).join('');
+      } catch (_) {}
+    }
+
+    document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); });
+    document.getElementById('results').addEventListener('click', e => {
+      const tr = e.target.closest('tr[data-lead-id]');
+      if (tr) openDetail(tr.dataset.leadId);
+    });
+    renderHeader('leads');
+    onBackendSwitch(() => { loadSelectOptions(); loadLeads(); });
+    loadSelectOptions();
+    loadLeads();
+    window.reloadPageData = () => { loadLeads(); };
+  </script>
+</body>
+</html>

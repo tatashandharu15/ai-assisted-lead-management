@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lead Ingest · AI Lead Manager</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <header id="app-header"></header>
+  <main>
+    <div class="page-head">
+      <h1 class="page-title">➕ Batch Lead Ingest
+        <span class="backend-hint" id="backend-hint"></span>
+      </h1>
+      <p class="page-desc">Simulate website form submissions. POST /leads/ingest auto-matches on <code class="mono">phone_digits</code> or <code class="mono">email</code> → UPDATE, else CREATE status=New.</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h3 class="panel-title">Single Lead Form</h3>
+          <div class="panel-sub">Hand-enter a prospect. Fields: name, email, phone, company, country, message</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row"><label>Full Name *</label><input class="input" id="f1" placeholder="e.g. Jane Doe" /></div>
+          <div class="form-row"><label>Email *</label><input class="input" id="f2" placeholder="jane@company.com" /></div>
+          <div class="form-row"><label>Phone</label><input class="input" id="f3" placeholder="+1 555 0100" /></div>
+          <div class="form-row"><label>Company</label><input class="input" id="f4" placeholder="Acme Inc." /></div>
+          <div class="form-row"><label>Country</label><input class="input" id="f5" placeholder="Singapore" /></div>
+          <div class="form-row"><label>Source / Page</label><input class="input" id="f6" placeholder="/pricing-book-demo" /></div>
+        </div>
+        <div class="form-row"><label>Message / Notes</label><textarea id="f7" placeholder="Requested enterprise demo, 50 seats, Singapore region..."></textarea></div>
+        <button class="btn primary" id="singleBtn" onclick="submitSingle()">🚀 Ingest Single Lead</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3 class="panel-title">Batch Sample Ingest (from dataset)</h3>
+          <div class="panel-sub"><code class="mono">website_form_submissions.json</code> · 90 entries total</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row"><label>Pick sample size</label>
+            <select class="select" id="batchSize">
+              <option value="1">1 entry</option>
+              <option value="5">5 entries</option>
+              <option value="10" selected>10 entries</option>
+              <option value="25">25 entries</option>
+              <option value="50">50 entries</option>
+              <option value="90">ALL 90 entries</option>
+            </select>
+          </div>
+          <div class="form-row"><label>Offset start index</label>
+            <input class="input" type="number" min="0" max="90" value="0" id="batchOffset" />
+          </div>
+        </div>
+        <button class="btn" onclick="previewBatch()">👁 Preview JSON payload</button>
+        <button class="btn success" id="batchBtn" onclick="submitBatch()" style="margin-left:6px">⚡ Ingest Batch</button>
+        <div id="previewArea" style="margin-top:14px;display:none">
+          <label style="font-size:12px;color:var(--text-dim);font-weight:500">Preview (truncated)</label>
+          <div class="notes-box" id="previewJson" style="max-height:220px;overflow:auto;font-family:'JetBrains Mono',monospace;font-size:12px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h3 class="panel-title">Ingest Results</h3>
+        <div class="panel-sub" id="resSummary">—</div>
+      </div>
+      <div id="results" style="min-height:60px">
+        <div class="empty"><div class="ico">📝</div><div class="t">No submissions yet</div><div class="s">Use form above (single or batch) to see auto-match results</div></div>
+      </div>
+    </div>
+  </main>
+  <script src="../js/api.js"></script>
+  <script>
+    function initHint() {
+      const b = getCurrentBackend();
+      document.getElementById('backend-hint').innerHTML = `Backend: <span class="active-col mono" style="color:${b.color}">${b.label} :${b.port}</span>`;
+    }
+    initHint();
+    onBackendSwitch(initHint);
+
+    function getBatchData() {
+      return fetch('../../data/website_form_submissions.json')
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => []);
+    }
+
+    async function previewBatch() {
+      const data = await getBatchData();
+      const n = +document.getElementById('batchSize').value;
+      const o = +document.getElementById('batchOffset').value;
+      const slice = data.slice(o, o + n);
+      document.getElementById('previewArea').style.display = 'block';
+      document.getElementById('previewJson').textContent = JSON.stringify(slice, null, 2);
+    }
+
+    async function submitSingle() {
+      const name = document.getElementById('f1').value.trim();
+      const email = document.getElementById('f2').value.trim();
+      if (!name || !email) { showToast('Name + Email are required', '#f59e0b'); return; }
+      const payload = [{
+        name, email,
+        phone: document.getElementById('f3').value,
+        company: document.getElementById('f4').value,
+        country: document.getElementById('f5').value,
+        page_url: document.getElementById('f6').value,
+        message: document.getElementById('f7').value,
+        submitted_at: new Date().toISOString(),
+        form_id: 'manual-' + Date.now(),
+        form_name: 'Manual Frontend Form'
+      }];
+      const btn = document.getElementById('singleBtn');
+      btn.disabled = true; btn.innerHTML = '<span class="sp"></span>Ingesting...';
+      try {
+        const res = await api('/leads/ingest', { method: 'POST', body: payload });
+        renderResults(Array.isArray(res) ? res : [res]);
+        ['f1','f2','f3','f4','f5','f6','f7'].forEach(id => document.getElementById(id).value = '');
+      } catch (e) { showToast(e.message, '#ef4444'); }
+      finally { btn.disabled = false; btn.innerHTML = '🚀 Ingest Single Lead'; }
+    }
+
+    async function submitBatch() {
+      const data = await getBatchData();
+      const n = +document.getElementById('batchSize').value;
+      const o = +document.getElementById('batchOffset').value;
+      const slice = data.slice(o, o + n);
+      if (!slice.length) { showToast('No entries to send', '#f59e0b'); return; }
+      const btn = document.getElementById('batchBtn');
+      btn.disabled = true; btn.innerHTML = '<span class="sp"></span>Sending ' + slice.length + '...';
+      try {
+        const res = await api('/leads/ingest', { method: 'POST', body: slice });
+        renderResults(res);
+      } catch (e) { showToast(e.message, '#ef4444'); }
+      finally { btn.disabled = false; btn.innerHTML = '⚡ Ingest Batch'; }
+    }
+
+    function renderResults(arr) {
+      if (!arr || !arr.length) { document.getElementById('results').innerHTML = `<div class="empty"><div class="ico">⚠️</div><div class="t">Empty response</div></div>`; return; }
+      const created = arr.filter(r => r.action === 'created').length;
+      const updated = arr.filter(r => r.action === 'updated').length;
+      const matchPhone = arr.filter(r => r.matched_on && r.matched_on.includes('phone')).length;
+      const matchEmail = arr.filter(r => r.matched_on && r.matched_on.includes('email')).length;
+      document.getElementById('resSummary').innerHTML =
+        `<span class="mono">${arr.length}</span> processed · <span style="color:var(--success)">${created} created</span> · <span style="color:var(--accent)">${updated} updated</span> · matched on phone:${matchPhone} email:${matchEmail}`;
+      document.getElementById('results').innerHTML = `<div class="table-wrap"><table class="data"><thead><tr>
+        <th>#</th><th>Result</th><th>Lead ID</th><th>Action</th><th>Matched On</th>
+      </tr></thead><tbody>${arr.map((r, i) => {
+        const ok = r.action === 'created' || r.action === 'updated';
+        const lid = r.lead_id ?? r.leadId ?? '—';
+        const actRaw = r.action ?? 'N/A';
+        return `<tr>
+          <td>${i + 1}</td>
+          <td><span class="pass-fail ${ok ? 'ok' : 'no'}">${ok ? 'OK' : 'ERR'}</span></td>
+          <td class="mono">#${escapeHtml(String(lid))}</td>
+          <td><strong style="color:${r.action === 'created' ? 'var(--success)' : (r.action === 'updated' ? 'var(--accent)' : 'var(--text-muted)')}">${escapeHtml(String(actRaw).toUpperCase())}</strong></td>
+          <td>${r.matched_on ? `<span class="badge" style="background:var(--panel-2)">${escapeHtml(r.matched_on)}</span>` : '<span style="color:var(--text-muted)">— new unique</span>'}</td>
+        </tr>`;
+      }).join('')}</tbody></table></div>`;
+    }
+    renderHeader('ingest');
+    window.reloadPageData = initHint;
+  </script>
+</body>
+</html>
