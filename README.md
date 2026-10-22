@@ -22,15 +22,15 @@
 [<img src="https://img.shields.io/badge/Pydantic%20v2-Validated-E92063?style=for-the-badge&logo=pydantic&logoColor=white" alt="Pydantic v2"/>](https://docs.pydantic.dev/)
 [<img src="https://img.shields.io/badge/Zod-Validated-3E67B1?style=for-the-badge&logo=zod&logoColor=white" alt="Zod"/>](https://zod.dev/)
 <br/>
-[<img src="https://img.shields.io/badge/Tests-72%2F72%20%E2%9C%85-4285F4?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Tests 72/72"/>](file:///Users/tatas/Downloads/candidate_package%20copy/python-version/tests)
-[<img src="https://img.shields.io/badge/Compliance-61%2F61%20%E2%9C%85-34A853?style=for-the-badge&logo=codacy&logoColor=white" alt="Compliance 61/61"/>](file:///Users/tatas/Downloads/candidate_package%20copy/_audit_compliance_v2.py)
+[<img src="https://img.shields.io/badge/Tests-72%2F72%20%E2%9C%85-4285F4?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Tests 72/72"/>](https://github.com/tatashandharu15/ai-assisted-lead-management/tree/main/python-version/tests)
+[<img src="https://img.shields.io/badge/Compliance-61%2F61%20%E2%9C%85-34A853?style=for-the-badge&logo=codacy&logoColor=white" alt="Compliance 61/61"/>](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/_audit_compliance_v2.py)
 [<img src="https://img.shields.io/badge/LLM-GPT--4o--mini-74aa9c?style=for-the-badge&logo=openai&logoColor=white" alt="LLM GPT-4o-mini"/>](https://platform.openai.com/docs/models/gpt-4o-mini)
-[<img src="https://img.shields.io/badge/Dual--Stack_Parity-Verified%20%E2%9C%85-1F6FEB?style=for-the-badge&logo=gitlfs&logoColor=white" alt="Dual-Stack Parity"/>](file:///Users/tatas/Downloads/candidate_package%20copy/COMPARISON.md)
+[<img src="https://img.shields.io/badge/Dual--Stack_Parity-Verified%20%E2%9C%85-1F6FEB?style=for-the-badge&logo=gitlfs&logoColor=white" alt="Dual-Stack Parity"/>](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/COMPARISON.md)
 <br/>
-[<img src="https://img.shields.io/badge/Frontend-Vanilla%20%2B%20SVG-FF6F61?style=for-the-badge&logo=html5&logoColor=white" alt="Frontend Vanilla + SVG"/>](file:///Users/tatas/Downloads/candidate_package%20copy/frontend/index.html)
-[<img src="https://img.shields.io/badge/Zero_Build-No_Bundler-111111?style=for-the-badge&logo=vite&logoColor=white" alt="Zero Build"/>](file:///Users/tatas/Downloads/candidate_package%20copy/frontend)
-[<img src="https://img.shields.io/badge/Dedupe-2_Stage_Blocking-DC2626?style=for-the-badge&logo=docusign&logoColor=white" alt="Dedupe 2-Stage"/>](file:///Users/tatas/Downloads/candidate_package%20copy/python-version/app/services/dedup.py)
-[<img src="https://img.shields.io/badge/Source_Extract-3_Tier_Fallback-F59E0B?style=for-the-badge&logo=stackedit&logoColor=white" alt="Source Extract 3-Tier"/>](file:///Users/tatas/Downloads/candidate_package%20copy/python-version/app/services/source_extract.py)
+[<img src="https://img.shields.io/badge/Frontend-Vanilla%20%2B%20SVG-FF6F61?style=for-the-badge&logo=html5&logoColor=white" alt="Frontend Vanilla + SVG"/>](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/frontend/index.html)
+[<img src="https://img.shields.io/badge/Zero_Build-No_Bundler-111111?style=for-the-badge&logo=vite&logoColor=white" alt="Zero Build"/>](https://github.com/tatashandharu15/ai-assisted-lead-management/tree/main/frontend)
+[<img src="https://img.shields.io/badge/Dedupe-2_Stage_Blocking-DC2626?style=for-the-badge&logo=docusign&logoColor=white" alt="Dedupe 2-Stage"/>](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/python-version/app/services/dedup.py)
+[<img src="https://img.shields.io/badge/Source_Extract-3_Tier_Fallback-F59E0B?style=for-the-badge&logo=stackedit&logoColor=white" alt="Source Extract 3-Tier"/>](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/python-version/app/services/source_extract.py)
 
 </p>
 
@@ -244,7 +244,7 @@ Input = notes_text + original_source_concatenated
 | Tests              | pytest 8 + httpx · 45 tests | vitest v2 · 27 tests |
 | Dev runtime        | uvicorn --reload (~250ms startup) | tsx v4 watch (~80ms startup) |
 
-For a quantitative side-by-side performance, dedup-group counts, and developer-experience comparison, see [COMPARISON.md](file:///Users/tatas/Downloads/candidate_package%20copy/COMPARISON.md).
+For a quantitative side-by-side performance, dedup-group counts, and developer-experience comparison, see [COMPARISON.md](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/COMPARISON.md).
 
 ---
 
@@ -449,14 +449,14 @@ candidate_package/
 
 | Reference | File |
 |---|---|
-| Original brief spec (verbatim backup) | [README-ASSIGNMENT-SPEC.md](file:///Users/tatas/Downloads/candidate_package%20copy/README-ASSIGNMENT-SPEC.md) |
-| Python ↔ Node comparison document | [COMPARISON.md](file:///Users/tatas/Downloads/candidate_package%20copy/COMPARISON.md) |
-| Python per-version documentation | [python-version/README.md](file:///Users/tatas/Downloads/candidate_package%20copy/python-version/README.md) |
-| Node per-version documentation | [node-version/README.md](file:///Users/tatas/Downloads/candidate_package%20copy/node-version/README.md) |
-| Python dedup logic | [dedup.py](file:///Users/tatas/Downloads/candidate_package%20copy/python-version/app/services/dedup.py) |
-| Node dedup logic | [dedup.ts](file:///Users/tatas/Downloads/candidate_package%20copy/node-version/src/services/dedup.ts) |
-| Python source extract 3-tier pipeline | [source_extract.py](file:///Users/tatas/Downloads/candidate_package%20copy/python-version/app/services/source_extract.py) |
-| Node source extract 3-tier pipeline | [source-extract.ts](file:///Users/tatas/Downloads/candidate_package%20copy/node-version/src/services/source-extract.ts) |
-| Frontend dashboard (emoji-free, SVG icons) | [frontend/index.html](file:///Users/tatas/Downloads/candidate_package%20copy/frontend/index.html) |
-| Frontend Icons singleton (Lucide-style) | [frontend/js/api.js](file:///Users/tatas/Downloads/candidate_package%20copy/frontend/js/api.js#L1-L24) |
-| 61-point automated rubric audit engine | [_audit_compliance_v2.py](file:///Users/tatas/Downloads/candidate_package%20copy/_audit_compliance_v2.py) |
+| Original brief spec (verbatim backup) | Not included in this repository. |
+| Python ↔ Node comparison document | [COMPARISON.md](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/COMPARISON.md) |
+| Python per-version documentation | [python-version/README.md](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/python-version/README.md) |
+| Node per-version documentation | [node-version/README.md](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/node-version/README.md) |
+| Python dedup logic | [dedup.py](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/python-version/app/services/dedup.py) |
+| Node dedup logic | [dedup.ts](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/node-version/src/services/dedup.ts) |
+| Python source extract 3-tier pipeline | [source_extract.py](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/python-version/app/services/source_extract.py) |
+| Node source extract 3-tier pipeline | [source-extract.ts](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/node-version/src/services/source-extract.ts) |
+| Frontend dashboard (emoji-free, SVG icons) | [frontend/index.html](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/frontend/index.html) |
+| Frontend Icons singleton (Lucide-style) | [frontend/js/api.js](https://github.com/tatashandharu15/ai-assisted-lead-management/tree/main/frontend/js/api.js#L1-L24) |
+| 61-point automated rubric audit engine | [_audit_compliance_v2.py](https://github.com/tatashandharu15/ai-assisted-lead-management/blob/main/_audit_compliance_v2.py) |
